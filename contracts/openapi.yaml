@@ -5,6 +5,7 @@ info:
   description: API for the Yega platform.
   license:
     name: Proprietary
+    url: https://yega.com.mx/legal/api-license
 servers:
   - url: https://api.stg.yega.com.mx
     description: Staging
