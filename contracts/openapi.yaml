@@ -3,10 +3,21 @@ info:
   title: Yega API
   version: 0.1.0
   description: API for the Yega platform.
+  license:
+    name: Proprietary
+servers:
+  - url: https://api.stg.yega.com.mx
+    description: Staging
+  - url: https://api.yega.com.mx
+    description: Production
+security:
+  - bearerAuth: []
 paths:
   /auth/login:
     post:
       summary: User login
+      operationId: authLogin
+      security: []
       requestBody:
         required: true
         content:
@@ -29,6 +40,8 @@ paths:
   /auth/register:
     post:
       summary: User registration
+      operationId: authRegister
+      security: []
       requestBody:
         required: true
         content:
@@ -51,6 +64,8 @@ paths:
   /catalog:
     get:
       summary: Get catalog of products
+      operationId: catalogList
+      security: []
       parameters:
         - name: page
           in: query
@@ -77,9 +92,16 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Product'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /orders:
     get:
       summary: Get user orders
+      operationId: ordersListMine
       security:
         - bearerAuth: []
       parameters:
@@ -108,8 +130,27 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Order'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
     post:
       summary: Create a new order
+      operationId: ordersCreate
       security:
         - bearerAuth: []
       requestBody:
@@ -125,9 +166,28 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Order'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /orders/{orderId}:
     get:
       summary: Get order details
+      operationId: ordersGetById
       security:
         - bearerAuth: []
       parameters:
@@ -144,9 +204,28 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Order'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /delivery-personnel/{deliveryPersonnelId}/location:
     put:
       summary: Update delivery personnel location
+      operationId: courierUpdateLocation
       security:
         - bearerAuth: []
       parameters:
@@ -172,6 +251,24 @@ paths:
       responses:
         '200':
           description: Location updated
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 components:
   securitySchemes:
     bearerAuth:
