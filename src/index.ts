@@ -25,9 +25,6 @@ app.use(helmet());
 app.use(cors({ origin: origins.length ? origins : true, credentials: true }));
 app.use(express.json());
 
-import catalogRouter from './routes/catalog.js';
-app.use(catalogRouter);
-
 // 1) Ruta pública de salud (sin auth)
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', uptime: process.uptime() });
@@ -44,8 +41,9 @@ app.use(
 );
 
 // 3) Aquí van tus rutas reales (las protegidas seguirán lo definido en el contrato)
+import catalogRouter from './routes/catalog.js';
 // app.use('/auth', authRouter);
-// app.use('/catalog', catalogRouter);
+app.use('/catalog', catalogRouter);
 // app.use('/orders', ordersRouter);
 
 // 4) Manejo de errores estándar (incluye errores del validador)
