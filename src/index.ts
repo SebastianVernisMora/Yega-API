@@ -47,9 +47,15 @@ app.use(
 import authRouter from './routes/auth.js';
 
 // 3) Aquí van tus rutas reales (las protegidas seguirán lo definido en el contrato)
+
+import catalogRouter from './routes/catalog.js';
+// app.use('/auth', authRouter);
+app.use('/catalog', catalogRouter);
+// app.use('/orders', ordersRouter);
 app.use('/auth', authRouter);
 // app.use('/catalog', catalogRouter);
 app.use('/orders', ordersRouter);
+
 
 // 4) Manejo de errores estándar (incluye errores del validador)
 app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {

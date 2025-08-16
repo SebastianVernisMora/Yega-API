@@ -1,8 +1,33 @@
-
 # env
 .env
 *.env
 docs/.env
+
 # swaps/temps
 *.swp
 *~
+
+# Dependencies
+/node_modules
+/.pnpm-store
+
+# Build artifacts
+/dist
+
+# Logs
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
