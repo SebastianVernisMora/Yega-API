@@ -31,10 +31,14 @@ app.use(openApi({
     validateRequests: true,
     validateResponses: false, // pon true si deseas validar respuestas
 }));
+import authRouter from './routes/auth.js';
+app.use('/auth', authRouter);
 // 3) Aquí van tus rutas reales (las protegidas seguirán lo definido en el contrato)
+
 import catalogRouter from './routes/catalog.js';
 // app.use('/auth', authRouter);
 app.use('/catalog', catalogRouter);
+
 // app.use('/orders', ordersRouter);
 // 4) Manejo de errores estándar (incluye errores del validador)
 app.use((err, _req, res, _next) => {

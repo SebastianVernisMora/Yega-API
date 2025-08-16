@@ -11,9 +11,10 @@ datasource db {
 
 model User {
   id        String   @id @default(uuid())
+  name      String
   email     String   @unique
   password  String
-  role      String   @default("customer") // admin | store | delivery
+  role      String   @default("client") // client | store | courier | admin
   createdAt DateTime @default(now())
   Order     Order[]
 }
