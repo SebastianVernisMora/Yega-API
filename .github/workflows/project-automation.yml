@@ -1,0 +1,74 @@
+name: Project Automation
+
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review, converted_to_draft, closed]
+  issues:
+    types: [closed, reopened]
+
+jobs:
+  project_automation:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GH_PROJECT_TOKEN || secrets.GITHUB_TOKEN }}
+      OWNER: SebastianVernisMora
+    steps:
+      - name: Compute project title
+        id: meta
+        run: |
+          REPO_NAME="${GITHUB_REPOSITORY#*/}"
+          echo "title=Sprint 1 - ${REPO_NAME}" >> $GITHUB_OUTPUT
+
+      - name: Get project number
+        id: proj
+        run: |
+          PNUM=$(gh project list --owner "$OWNER" --format json --jq \
+            ".[] | select(.title==\"${{ steps.meta.outputs.title }}\") | .number" | head -n1)
+          if [ -z "$PNUM" ]; then
+            echo "::error::Project not found: ${{ steps.meta.outputs.title }}"; exit 1
+          fi
+          echo "number=$PNUM" >> $GITHUB_OUTPUT
+
+      - name: Handle PR opened/reopened/ready
+        if: github.event_name == 'pull_request' && github.event.action != 'closed'
+        run: |
+          PR=${{ github.event.pull_request.number }}
+          # Linked issues via closing keywords
+          nums=$(gh pr view "$PR" --json closingIssuesReferences --jq '.closingIssuesReferences[].number' || true)
+          for n in $nums; do
+            url="https://github.com/${GITHUB_REPOSITORY}/issues/$n"
+            gh project item-add --owner "$OWNER" --number "${{ steps.proj.outputs.number }}" --url "$url" >/dev/null 2>&1 || true
+            gh project item-edit --owner "$OWNER" --number "${{ steps.proj.outputs.number }}" --url "$url" --field "Status" --value "In Progress" >/dev/null 2>&1 || true
+            echo "Moved #$n to In Progress"
+          done
+
+      - name: Handle PR merged -> Done
+        if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true
+        run: |
+          PR=${{ github.event.pull_request.number }}
+          nums=$(gh pr view "$PR" --json closingIssuesReferences --jq '.closingIssuesReferences[].number' || true)
+          for n in $nums; do
+            url="https://github.com/${GITHUB_REPOSITORY}/issues/$n"
+            gh project item-add --owner "$OWNER" --number "${{ steps.proj.outputs.number }}" --url "$url" >/dev/null 2>&1 || true
+            gh project item-edit --owner "$OWNER" --number "${{ steps.proj.outputs.number }}" --url "$url" --field "Status" --value "Done" >/dev/null 2>&1 || true
+            echo "Moved #$n to Done (merged)"
+          done
+
+      - name: Handle issue closed -> Done
+        if: github.event_name == 'issues' && github.event.action == 'closed'
+        run: |
+          n=${{ github.event.issue.number }}
+          url="https://github.com/${GITHUB_REPOSITORY}/issues/$n"
+          gh project item-add --owner "$OWNER" --number "${{ steps.proj.outputs.number }}" --url "$url" >/dev/null 2>&1 || true
+          gh project item-edit --owner "$OWNER" --number "${{ steps.proj.outputs.number }}" --url "$url" --field "Status" --value "Done" >/dev/null 2>&1 || true
+          echo "Moved #$n to Done (closed)"
+
+      - name: Handle issue reopened -> Todo
+        if: github.event_name == 'issues' && github.event.action == 'reopened'
+        run: |
+          n=${{ github.event.issue.number }}
+          url="https://github.com/${GITHUB_REPOSITORY}/issues/$n"
+          gh project item-add --owner "$OWNER" --number "${{ steps.proj.outputs.number }}" --url "$url" >/dev/null 2>&1 || true
+          gh project item-edit --owner "$OWNER" --number "${{ steps.proj.outputs.number }}" --url "$url" --field "Status" --value "Todo" >/dev/null 2>&1 || true
+          echo "Moved #$n to Todo (reopened)"
+
