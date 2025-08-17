@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import authMiddleware from '../middlewares/auth.js';
-import { requireRole } from '../middlewares/rbac.js';
+import { requireRole, assertProductOwnership } from '../middlewares/rbac.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -51,15 +51,24 @@ router.put(
   async (req, res, next) => {
     try {
       const { productId } = req.params;
-      // TODO: If role is 'store', assertProductOwnership(prisma, req.user.id, productId)
-
+      if (req.user!.role === 'store') {
+        await assertProductOwnership(prisma, req.user!.id, productId);
+      }
       const product = await prisma.product.update({
         where: { id: productId },
         data: req.body,
       });
       res.json(product);
     } catch (err) {
-        // Prisma's P2025 error code indicates record not found
+        if ((err as any).code === 'FORBIDDEN' || (err as any).code === 'NOT_FOUND') {
+          return res.status((err as any).http).json({
+            error: {
+              code: (err as any).code,
+              http: (err as any).http,
+              message: (err as any).message,
+            }
+          });
+        }
         if ((err as any).code === 'P2025') {
             return res.status(404).json({
                 error: {
@@ -82,14 +91,23 @@ router.delete(
   async (req, res, next) => {
     try {
       const { productId } = req.params;
-      // TODO: If role is 'store', assertProductOwnership(prisma, req.user.id, productId)
-
+      if (req.user!.role === 'store') {
+        await assertProductOwnership(prisma, req.user!.id, productId);
+      }
       await prisma.product.delete({
         where: { id: productId },
       });
       res.status(204).end();
     } catch (err) {
-        // Prisma's P2025 error code indicates record not found
+        if ((err as any).code === 'FORBIDDEN' || (err as any).code === 'NOT_FOUND') {
+          return res.status((err as any).http).json({
+            error: {
+              code: (err as any).code,
+              http: (err as any).http,
+              message: (err as any).message,
+            }
+          });
+        }
         if ((err as any).code === 'P2025') {
             return res.status(404).json({
                 error: {
