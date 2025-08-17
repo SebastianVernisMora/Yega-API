@@ -8,6 +8,11 @@ const log = pino({ transport: { target: 'pino-pretty' } });
 const prisma = new PrismaClient();
 const router = Router();
 
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable is not defined');
+}
+
 router.post('/register', async (req, res, next) => {
   const { name, email, password, role } = req.body;
 
@@ -56,7 +61,7 @@ router.post('/register', async (req, res, next) => {
 
     const token = jwt.sign(
       { sub: user.id, role: user.role },
-      process.env.JWT_SECRET || 'super-secreto',
+      JWT_SECRET,
       signOptions
     );
 
@@ -127,7 +132,7 @@ router.post('/login', async (req, res, next) => {
 
     const token = jwt.sign(
       { sub: user.id, role: user.role },
-      process.env.JWT_SECRET || 'super-secreto',
+      JWT_SECRET,
       signOptions
     );
 
