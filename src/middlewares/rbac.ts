@@ -1,19 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
 
-// This is a global augmentation of the Express Request interface
-// to add the 'user' property. This is a common pattern in Express apps
-// using authentication middleware.
-declare global {
-  namespace Express {
-    interface Request {
-      user?: {
-        id: string;
-        role: string;
-      }
-    }
-  }
-}
-
 export function requireRole(...roles: Array<'admin' | 'store' | 'client' | 'courier'>) {
   return (req: Request, res: Response, next: NextFunction) => {
     const userRole = req.user?.role;
@@ -34,7 +20,13 @@ export function requireRole(...roles: Array<'admin' | 'store' | 'client' | 'cour
 export async function assertProductOwnership(prisma: any, userId: string, productId: string) {
   const product = await prisma.product.findUnique({
     where: { id: productId },
-    select: { storeId: true },
+    include: {
+      store: {
+        select: {
+          ownerId: true,
+        },
+      },
+    },
   });
 
   if (!product) {
@@ -44,7 +36,7 @@ export async function assertProductOwnership(prisma: any, userId: string, produc
     throw error;
   }
 
-  if (product.storeId !== userId) {
+  if (product.store.ownerId !== userId) {
     const error: any = new Error('You do not own this product');
     error.code = 'FORBIDDEN';
     error.http = 403;

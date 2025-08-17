@@ -3,7 +3,8 @@ import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
-  throw new Error('JWT_SECRET environment variable is not defined');
+  console.error('FATAL ERROR: JWT_SECRET environment variable is not defined.');
+  process.exit(1);
 }
 
 interface JwtPayload {
@@ -27,8 +28,13 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
   const token = authHeader.split(' ')[1];
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
-    req.user = { id: decoded.id, role: decoded.role };
+    const decoded = jwt.verify(token, JWT_SECRET);
+
+    if (typeof decoded !== 'object' || decoded === null || !('id' in decoded) || !('role' in decoded)) {
+      throw new Error('Invalid token payload');
+    }
+
+    req.user = { id: (decoded as JwtPayload).id, role: (decoded as JwtPayload).role };
     next();
   } catch {
     return res.status(401).json({
