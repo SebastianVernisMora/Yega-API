@@ -51,7 +51,7 @@ router.post('/register', async (req, res, next) => {
     });
 
     const signOptions: SignOptions = {
-      expiresIn: 604800, // 7 days in seconds
+      expiresIn: process.env.JWT_EXPIRES || '7d',
     };
 
     const token = jwt.sign(
@@ -122,7 +122,7 @@ router.post('/login', async (req, res, next) => {
     }
 
     const signOptions: SignOptions = {
-      expiresIn: 604800, // 7 days in seconds
+      expiresIn: process.env.JWT_EXPIRES || '7d',
     };
 
     const token = jwt.sign(
