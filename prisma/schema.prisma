@@ -17,6 +17,7 @@ model User {
   role      String   @default("client") // client | store | courier | admin
   createdAt DateTime @default(now())
   Order     Order[]
+  stores    Store[]
 }
 
 model Store {
@@ -24,6 +25,8 @@ model Store {
   name      String
   createdAt DateTime  @default(now())
   products  Product[]
+  owner     User      @relation(fields: [ownerId], references: [id])
+  ownerId   String
 }
 
 model Product {

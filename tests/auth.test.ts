@@ -1,6 +1,6 @@
 import express from 'express';
 import request from 'supertest';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 
 let prismaMock: any;
 vi.mock('@prisma/client', () => {
@@ -32,6 +32,7 @@ describe('Auth routes', () => {
   let authRouter: any;
 
   beforeEach(async () => {
+    vi.stubEnv('JWT_SECRET', 'test-secret');
     app = express();
     app.use(express.json());
     authRouter = (await import('../src/routes/auth.js')).default;
@@ -39,6 +40,10 @@ describe('Auth routes', () => {
 
     prismaMock.user.findUnique.mockReset();
     prismaMock.user.create.mockReset();
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
   });
 
   it('registers a new user', async () => {
