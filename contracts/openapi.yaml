@@ -33,6 +33,22 @@ paths:
                   uptime:
                     type: number
                     example: 123.45
+  /ready:
+    get:
+      summary: Readiness check endpoint
+      description: Verifica que la API esté lista para recibir tráfico.
+      security: []
+      responses:
+        '200':
+          description: API lista para recibir tráfico
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ready
   /auth/login:
     post:
       summary: User login
@@ -53,6 +69,67 @@ paths:
                 $ref: '#/components/schemas/AuthResponse'
         '401':
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /auth/register:
+    post:
+      summary: User registration
+      operationId: authRegister
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Successful registration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /catalog:
+    get:
+      summary: Get catalog of products
+      operationId: catalogList
+      security: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 50
+      responses:
+        '200':
+          description: A list of items in the catalog
+          headers:
+            X-Total-Count:
+              schema:
+                type: integer
+              description: Total number of items.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+        '400':
+          description: Invalid request
           content:
             application/json:
               schema:
@@ -94,6 +171,36 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
   /catalog/{productId}:
+    get:
+      summary: Get a specific product
+      operationId: catalogGetById
+      security: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Product details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
     put:
       summary: Update a product
       operationId: catalogUpdate
@@ -176,34 +283,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /auth/register:
-    post:
-      summary: User registration
-      operationId: authRegister
-      security: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RegisterRequest'
-      responses:
-        '201':
-          description: Successful registration
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        '400':
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-  /catalog:
+  /stores:
     get:
-      summary: Get catalog of products
-      operationId: catalogList
+      summary: Get list of stores
+      operationId: storesList
       security: []
       parameters:
         - name: page
@@ -219,20 +302,169 @@ paths:
             maximum: 50
       responses:
         '200':
-          description: A list of items in the catalog
+          description: A list of stores
           headers:
             X-Total-Count:
               schema:
                 type: integer
-              description: Total number of items.
+              description: Total number of stores.
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Product'
+                  $ref: '#/components/schemas/Store'
         '400':
           description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Create a new store
+      operationId: storesCreate
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StoreCreate'
+      responses:
+        '201':
+          description: Store created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Store'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /stores/{storeId}:
+    get:
+      summary: Get a specific store
+      operationId: storesGetById
+      security: []
+      parameters:
+        - name: storeId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Store details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Store'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Store not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      summary: Update a store
+      operationId: storesUpdate
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: storeId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StoreUpdate'
+      responses:
+        '200':
+          description: Store updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Store'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Store not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      summary: Delete a store
+      operationId: storesDelete
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: storeId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Store deleted successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Store not found
           content:
             application/json:
               schema:
@@ -361,6 +593,66 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+        '404':
+          description: Order not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /orders/{orderId}/status:
+    patch:
+      summary: Update order status
+      operationId: ordersUpdateStatus
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  $ref: '#/components/schemas/OrderStatus'
+      responses:
+        '200':
+          description: Order status updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Order not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /delivery-personnel/{deliveryPersonnelId}/location:
     put:
       summary: Update delivery personnel location
@@ -434,6 +726,24 @@ components:
         role:
           type: string
           enum: [client, store, courier, admin]
+    Store:
+      type: object
+      required: [id, name, ownerId]
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 2
+          maxLength: 150
+        description:
+          type: string
+          maxLength: 500
+        ownerId:
+          type: string
+          format: uuid
     Product:
       type: object
       required: [id, name, price, storeId]
@@ -490,6 +800,29 @@ components:
           type: number
           format: float
           minimum: 0
+    StoreCreate:
+      type: object
+      required: [name]
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 150
+        description:
+          type: string
+          maxLength: 500
+    StoreUpdate:
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 150
+        description:
+          type: string
+          maxLength: 500
     Order:
       type: object
       required: [id, userId, items, status, total]
@@ -501,18 +834,23 @@ components:
         userId:
           type: string
           format: uuid
+        storeId:
+          type: string
+          format: uuid
         items:
           type: array
           minItems: 1
           items:
             $ref: '#/components/schemas/OrderItem'
         status:
-          type: string
-          enum: [pending, accepted, preparing, assigned, on_route, delivered, canceled]
+          $ref: '#/components/schemas/OrderStatus'
         total:
           type: number
           format: float
           minimum: 0
+        createdAt:
+          type: string
+          format: date-time
     OrderItem:
       type: object
       required: [productId, quantity, price]
@@ -528,6 +866,18 @@ components:
           type: number
           format: float
           minimum: 0
+    OrderStatus:
+      type: string
+      enum: [pending, accepted, preparing, assigned, on_route, delivered, canceled]
+      description: |
+        Estados válidos de un pedido:
+        - pending: Pedido creado por el cliente
+        - accepted: Tienda acepta el pedido
+        - preparing: Tienda está preparando el pedido
+        - assigned: Pedido asignado a un repartidor
+        - on_route: Repartidor en camino a entregar
+        - delivered: Pedido entregado
+        - canceled: Pedido cancelado
     LoginRequest:
       type: object
       required: [email, password]

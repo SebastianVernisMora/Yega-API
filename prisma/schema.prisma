@@ -23,10 +23,12 @@ model User {
 model Store {
   id        String    @id @default(uuid())
   name      String
+  description String?
   createdAt DateTime  @default(now())
   products  Product[]
   owner     User      @relation(fields: [ownerId], references: [id])
   ownerId   String
+  Order     Order[]
 }
 
 model Product {
@@ -37,13 +39,27 @@ model Product {
   store       Store    @relation(fields: [storeId], references: [id])
   storeId     String
   createdAt   DateTime @default(now())
+  OrderItem   OrderItem[]
 }
 
 model Order {
-  id        String   @id @default(uuid())
-  user      User     @relation(fields: [userId], references: [id])
+  id        String     @id @default(uuid())
+  user      User       @relation(fields: [userId], references: [id])
   userId    String
-  createdAt DateTime @default(now())
-  items     Json
-  status    String   @default("pending")
+  store     Store      @relation(fields: [storeId], references: [id])
+  storeId   String
+  createdAt DateTime   @default(now())
+  items     OrderItem[]
+  status    String     @default("pending")
+  total     Decimal    @db.Decimal(10, 2)
+}
+
+model OrderItem {
+  id        String   @id @default(uuid())
+  order     Order    @relation(fields: [orderId], references: [id])
+  orderId   String
+  product   Product  @relation(fields: [productId], references: [id])
+  productId String
+  quantity  Int
+  price     Decimal  @db.Decimal(10, 2)
 }

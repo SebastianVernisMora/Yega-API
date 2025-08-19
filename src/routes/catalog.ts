@@ -14,12 +14,57 @@ router.get('/', async (req, res, next) => {
     const skip  = (page - 1) * limit;
 
     const [items, total] = await prisma.$transaction([
-        prisma.product.findMany({ skip, take: limit, orderBy: { name: 'asc' } }),
+        prisma.product.findMany({ 
+          skip, 
+          take: limit, 
+          orderBy: { name: 'asc' },
+          include: {
+            store: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        }),
         prisma.product.count(),
     ]);
 
     res.set('X-Total-Count', String(total));
     res.json(items);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /catalog/:productId (Public)
+router.get('/:productId', async (req, res, next) => {
+  try {
+    const { productId } = req.params;
+
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+      include: {
+        store: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    if (!product) {
+      return res.status(404).json({
+        error: {
+          code: 'NOT_FOUND',
+          http: 404,
+          message: 'Product not found',
+        },
+      });
+    }
+
+    res.json(product);
   } catch (err) {
     next(err);
   }
@@ -32,9 +77,18 @@ router.post(
   requireRole('admin', 'store'),
   async (req, res, next) => {
     try {
-      // TODO: If role is 'store', assertStoreOwnership(prisma, req.user.id, req.body.storeId)
+      // If role is 'store', we should verify the store belongs to the user
+      // For now, we'll just create the product with the provided storeId
       const product = await prisma.product.create({
         data: req.body,
+        include: {
+          store: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
       });
       res.status(201).json(product);
     } catch (err) {
@@ -57,6 +111,14 @@ router.put(
       const product = await prisma.product.update({
         where: { id: productId },
         data: req.body,
+        include: {
+          store: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
       });
       res.json(product);
     } catch (err) {
