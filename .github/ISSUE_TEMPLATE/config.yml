@@ -1,0 +1,9 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Guía de automatización (Projects v2)
+    url: https://github.com/SebastianVernisMora/Yega-API/blob/dev/docs/PROJECTS-AUTOMATION.md
+    about: Cómo se mueven automáticamente los issues entre estados.
+  - name: Backlog Sprint 1
+    url: https://github.com/SebastianVernisMora/Yega-API/blob/dev/docs/ISSUES-Sprint-1.md
+    about: Lista de tareas planificadas del Sprint 1.
+
