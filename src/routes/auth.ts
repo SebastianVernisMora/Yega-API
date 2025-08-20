@@ -4,9 +4,9 @@ import bcrypt from 'bcryptjs';
 import jwt, { SignOptions } from 'jsonwebtoken';
 import pino from 'pino';
 
-const log = pino({ transport: { target: 'pino-pretty' } });
-const prisma = new PrismaClient();
-const router = Router();
+export const createAuthRouter = (prisma: PrismaClient) => {
+  const log = pino({ transport: { target: 'pino-pretty' } });
+  const router = Router();
 
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
@@ -153,4 +153,5 @@ router.post('/login', async (req, res, next) => {
   }
 });
 
-export default router;
+  return router;
+};
