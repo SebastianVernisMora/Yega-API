@@ -1,6 +1,6 @@
 # 🟦 Yega-API – Tablero Sprint 1
 
-## Hecho
+## Sprint 1 Completado
 
 - **[x] Refinar Modelos de Datos (`schema.prisma`)**
   - Añadidos campos `createdAt` y `updatedAt` a todos los modelos.
@@ -16,3 +16,5 @@
   - Verificada ruta `POST /orders` para crear un nuevo pedido.
   - Verificada máquina de estados para `OrderStatus`.
   - Verificada ruta `GET /orders/{id}` para ver estado.
+
+**Nota:** El Sprint 1 ha finalizado. Toda la documentación ha sido actualizada para reflejar el estado final del sprint.
