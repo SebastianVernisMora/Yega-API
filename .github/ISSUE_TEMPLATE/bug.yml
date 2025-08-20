@@ -1,0 +1,37 @@
+name: "Bug"
+description: "Reporte de error"
+title: "[Bug] <título conciso>"
+labels: ["bug", "sprint-1"]
+assignees: []
+body:
+  - type: textarea
+    id: descripcion
+    attributes:
+      label: Descripción
+      description: ¿Qué ocurre y qué esperabas que ocurriera?
+    validations:
+      required: true
+  - type: textarea
+    id: reproducir
+    attributes:
+      label: Pasos para reproducir
+      placeholder: |
+        1. Ir a '...'
+        2. Click en '...'
+        3. Ver error
+    validations:
+      required: true
+  - type: input
+    id: entorno
+    attributes:
+      label: Entorno
+      placeholder: navegador/OS/versión
+  - type: checkboxes
+    id: impacto
+    attributes:
+      label: Impacto
+      options:
+        - label: Rompe funcionalidad principal
+        - label: Degradación de UX
+        - label: Problema menor
+
