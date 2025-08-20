@@ -68,11 +68,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/AuthResponse'
         '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/AuthInvalidCredentials'
   /auth/register:
     post:
       summary: User registration
@@ -92,11 +88,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/User'
         '400':
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/AuthEmailTaken'
   /catalog:
     get:
       summary: Get catalog of products
@@ -555,6 +547,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+        '409':
+          $ref: '#/components/responses/OrderInvalidState'
   /orders/{orderId}:
     get:
       summary: Get order details
@@ -594,6 +588,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '404':
+          $ref: '#/components/responses/OrderNotFound'
           description: Order not found
           content:
             application/json:
@@ -706,6 +701,67 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+  responses:
+    AuthInvalidCredentials:
+      description: Invalid credentials
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            auth.invalid_credentials:
+              value:
+                error:
+                  code: auth.invalid_credentials
+                  http: 401
+                  message: Invalid credentials
+                  details:
+                    attempts_remaining: 2
+    AuthEmailTaken:
+      description: Email already registered
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            auth.email_taken:
+              value:
+                error:
+                  code: auth.email_taken
+                  http: 400
+                  message: Email already registered
+                  details:
+                    email: user@example.com
+    OrderNotFound:
+      description: Order not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            orders.not_found:
+              value:
+                error:
+                  code: orders.not_found
+                  http: 404
+                  message: Order not found
+                  details:
+                    order_id: 8b7f3c2d-4e5f-6a7b-8c9d-0e1f2a3b4c5d
+    OrderInvalidState:
+      description: Invalid order state for this operation
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            orders.invalid_state:
+              value:
+                error:
+                  code: orders.invalid_state
+                  http: 409
+                  message: Invalid order state for this operation
+                  details:
+                    current: delivered
   schemas:
     User:
       type: object
