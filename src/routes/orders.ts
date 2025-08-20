@@ -2,8 +2,8 @@ import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { authMiddleware } from '../middlewares/auth.js';
 
-const router = Router();
-const prisma = new PrismaClient();
+export const createOrdersRouter = (prisma: PrismaClient) => {
+  const router = Router();
 
 // All order routes are protected, and this router will be mounted on `/orders`
 router.use(authMiddleware);
@@ -256,4 +256,5 @@ router.patch('/:orderId/status', async (req, res, next) => {
   }
 });
 
-export default router;
+  return router;
+};

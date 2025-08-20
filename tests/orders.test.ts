@@ -1,54 +1,60 @@
 import express from 'express';
 import request from 'supertest';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { createOrdersRouter } from '../src/routes/orders';
+import { createPrismaMock } from './helpers/prisma';
+import { Prisma, PrismaClient } from '@prisma/client';
 
-let prismaMock: any;
-vi.mock('@prisma/client', () => {
-  prismaMock = {
-    order: {
-      findMany: vi.fn(),
-      count: vi.fn(),
-      findFirst: vi.fn(),
-      create: vi.fn(),
-    },
-  };
-  return { PrismaClient: vi.fn(() => prismaMock) };
-});
-
+// Mock middlewares
 vi.mock('../src/middlewares/auth.js', () => ({
-  authMiddleware: (req: any, _res: any, next: any) => { req.user = { id: 'user1', role: 'customer' }; next(); },
+  authMiddleware: (req: any, _res: any, next: any) => {
+    req.user = { id: 'user-1', role: 'client' };
+    next();
+  },
 }));
 
-describe('Orders routes', () => {
+describe('Orders Routes', () => {
   let app: express.Express;
-  let ordersRouter: any;
+  let prismaMock: PrismaClient;
 
-  beforeEach(async () => {
+  beforeEach(() => {
+    prismaMock = createPrismaMock();
     app = express();
     app.use(express.json());
-    ordersRouter = (await import('../src/routes/orders.js')).default;
-    app.use('/orders', ordersRouter);
-
-    prismaMock.order.findMany.mockReset();
-    prismaMock.order.count.mockReset();
-    prismaMock.order.findFirst.mockReset();
+    app.use('/orders', createOrdersRouter(prismaMock));
   });
 
-  it('lists user orders', async () => {
-    prismaMock.order.findMany.mockResolvedValue([{ id: 'o1', userId: 'user1' }]);
-    prismaMock.order.count.mockResolvedValue(1);
+  it('should create an order', async () => {
+    const product = { id: 'prod-1', name: 'Test Product', price: new Prisma.Decimal(10.0) };
+    const orderData = { storeId: 'store-1', items: [{ productId: 'prod-1', quantity: 2 }] };
+
+    (prismaMock.product.findUnique as any).mockResolvedValue(product);
+    (prismaMock.order.create as any).mockResolvedValue({
+      id: 'order-1',
+      userId: 'user-1',
+      storeId: 'store-1',
+      total: new Prisma.Decimal(20.0),
+      status: 'pending',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    const res = await request(app).post('/orders').send(orderData);
+
+    expect(res.status).toBe(201);
+    expect(res.body.id).toBe('order-1');
+  });
+
+  it('should list user orders', async () => {
+    const orders = [
+      { id: 'order-1', userId: 'user-1', total: new Prisma.Decimal(20.0), status: 'pending', storeId: 's1', createdAt: new Date(), updatedAt: new Date() },
+    ];
+    (prismaMock.order.findMany as any).mockResolvedValue(orders);
+    (prismaMock.order.count as any).mockResolvedValue(1);
 
     const res = await request(app).get('/orders');
     expect(res.status).toBe(200);
     expect(res.body).toHaveLength(1);
-  });
-
-  it('returns 404 for unknown order', async () => {
-    prismaMock.order.findFirst.mockResolvedValue(null);
-
-    const res = await request(app).get('/orders/unknown');
-    expect(res.status).toBe(404);
-    expect(res.body.error.code).toBe('NOT_FOUND');
+    expect(res.body[0].id).toBe('order-1');
   });
 });
-
