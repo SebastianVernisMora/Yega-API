@@ -1,0 +1,26 @@
+name: Generate SDK
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'contracts/openapi.yaml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Extract version
+        run: echo "VERSION=$(grep '^  version:' contracts/openapi.yaml | awk '{print $2}')" >> $GITHUB_ENV
+      - name: Generate SDK
+        run: npx @openapitools/openapi-generator-cli generate -i contracts/openapi.yaml -g typescript-fetch -o sdk --additional-properties=npmName=@yega/api-sdk,npmVersion=${VERSION}
+      - name: Publish to GitHub Packages
+        run: |
+          cd sdk
+          npm publish --registry https://npm.pkg.github.com
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

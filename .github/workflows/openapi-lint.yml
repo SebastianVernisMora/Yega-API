@@ -1,0 +1,19 @@
+name: Validate OpenAPI
+
+on:
+  push:
+    paths:
+      - 'contracts/openapi.yaml'
+  pull_request:
+    paths:
+      - 'contracts/openapi.yaml'
+
+jobs:
+  spectral:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npx @stoplight/spectral-cli lint contracts/openapi.yaml --ruleset spectral:oas
