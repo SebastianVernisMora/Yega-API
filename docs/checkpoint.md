@@ -1,22 +1,25 @@
 # Checkpoint
 
-## Last Status: 2025-08-14
+## Último Estado: 2025-08-19
 
-The initial definition of the API contract is complete.
+Las tareas de desarrollo del Sprint 1 han sido completadas.
 
-### Work Done:
-- **Branch:** `feat/api-contract-v0-1` created.
-- **API Contract:** `contracts/openapi.yaml` created and detailed with:
-  - Endpoints for auth, catalog, orders, and delivery personnel.
-  - Schemas for User, Product, Order, etc.
-  - Request/response bodies.
-  - Security definitions (Bearer Auth).
-  - Pagination conventions (`?page`, `?limit`, `X-Total-Count`).
-- **Documentation:**
-  - `docs/ERRORS.md`: Defines the standard error shape.
-  - `docs/CHANGELOG-API.md`: Initial version 0.1.0 documented.
-  - `docs/SDK-PLAN.md`: Strategy for client generation defined.
-- **Commit:** All changes are committed on the feature branch. The commit is ready for a Pull Request to `dev`.
+### Trabajo Realizado:
+- **Esquema de Base de Datos:**
+  - Refinado `prisma/schema.prisma` para añadir timestamps `updatedAt` a todos los modelos.
+  - Generada una nueva migración de base de datos para aplicar los cambios.
+- **API de Catálogo:**
+  - Implementados endpoints públicos para listar y ver productos (`GET /catalog/products` y `GET /catalog/products/:id`).
+  - Implementados endpoints protegidos para que los dueños de tiendas gestionen productos (`POST`, `PUT`, `DELETE`).
+- **API de Pedidos:**
+  - Revisada y confirmada la implementación existente para la creación (`POST /orders`) y consulta (`GET /orders/:id`) de pedidos.
+  - Verificada la lógica de la máquina de estados para el estado de los pedidos.
+- **Documentación:**
+  - Actualizados `docs/BOARD-Sprint-1.md` y `docs/ISSUES-Sprint-1.md` para marcar todas las tareas como completadas.
+  - Actualizado `docs/CHANGELOG-API.md` con una nueva versión (0.2.0) detallando los cambios recientes.
 
-### Next Steps:
-- Await further instructions for the next phase of API contract definition or other tasks.
+### Próximos Pasos:
+- Esperar instrucciones para la siguiente fase, que podría incluir:
+  - Preparar un Pull Request para fusionar los cambios en la rama `dev`.
+  - Comenzar a trabajar en las tareas del siguiente sprint.
+  - Tareas de despliegue o integración.

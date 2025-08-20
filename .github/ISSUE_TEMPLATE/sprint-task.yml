@@ -1,0 +1,36 @@
+name: "Sprint Task"
+description: "Tarea planificada del sprint (usa closing keywords en PRs)"
+title: "[S1] <título conciso>"
+labels: ["sprint-1"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Completa los campos. Los PRs deben incluir una línea como:
+        "Closes #<número-de-issue>" para activar la automatización del Project v2.
+  - type: textarea
+    id: contexto
+    attributes:
+      label: Contexto
+      description: ¿Qué problema/objetivo cubre esta tarea?
+      placeholder: Breve contexto del porqué.
+    validations:
+      required: true
+  - type: textarea
+    id: tareas
+    attributes:
+      label: Tareas
+      description: Lista de tareas a realizar.
+      placeholder: "- [ ] Tarea 1\n- [ ] Tarea 2"
+    validations:
+      required: true
+  - type: checkboxes
+    id: dod
+    attributes:
+      label: Definition of Done (DoD)
+      options:
+        - label: Código y/o docs actualizados
+        - label: PR crea o referencia con "Closes #<n>"
+        - label: QA mínimo (smoke) realizado
+

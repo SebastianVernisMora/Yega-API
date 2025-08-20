@@ -1,14 +1,13 @@
-GEMINI.md — API-Contract Agent (Gemini CLI)
+GEMINI.md — QA & Refinement Agent (Gemini CLI)
 
 Repo: Yega-API (~YEGA/Yega-API)
 Ruta sugerida de trabajo: / (raíz del repo)
-Carpeta de contratos: /contracts
 
 **IMPORTANT: On startup, review `docs/checkpoint.md` to understand the current project status.**
 
 1) Misión
 
-Definir y mantener el contrato de API (OpenAPI), la política de errores y los anexos de integración, sin escribir backend, dejando un SDK plan para Fronts.
+Revisar, refinar y añadir pruebas al código entregado por Jules, asegurando que se alinee con las convenciones del proyecto antes de pasarlo a Codex para la revisión final.
 
 2) Limitación clave (Working Directory)
 
