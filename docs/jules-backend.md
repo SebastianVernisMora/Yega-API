@@ -1,8 +1,8 @@
-YEGA — Backend Agent (GitHub Copilot).md
+YEGA — Backend Agent (Jules).md
 
 Repo (este): API (backend Node.js)
 Working dir: raíz del repo backend (no tocar otros repos)
-Herramienta principal: GitHub Copilot (Free)
+Herramienta principal: Jules
 Fase objetivo: S1 (base de API) → S2–S4 (endpoints para Fronts) → S5 (hardening)
 
 1) Misión y alcance
@@ -34,7 +34,7 @@ PR → dev con checklist completo (ver §9).
 
 3) Limitación clave (working directory)
 
-Copilot opera dentro de este repo.
+Jules opera dentro de este repo.
 
 Prohibido proponer cambios en otros repos desde este PR.
 
@@ -157,7 +157,7 @@ Rellenar la plantilla (ver §9).
 
 Adjuntar evidencia (salida lint/build, listado de rutas implementadas y su mapeo a OpenAPI).
 
-Etiquetas: ai:copilot, scope:backend, module:<auth|orders|...>.
+Etiquetas: ai:jules, scope:backend, module:<auth|orders|...>.
 
 6) DoR / DoD
 
@@ -225,7 +225,7 @@ Checklist
 
  Sin cambios en contracts/; discrepancias documentadas en issue.
 
- Etiquetas: ai:copilot, scope:backend, module:<...>.
+ Etiquetas: ai:jules, scope:backend, module:<...>.
 
 Riesgos / rollback
 
