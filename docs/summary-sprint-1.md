@@ -13,9 +13,9 @@ The initial definition of the API contract is complete.
   - Security definitions (Bearer Auth).
   - Pagination conventions (`?page`, `?limit`, `X-Total-Count`).
 - **Documentation:**
-  - `docs/ERRORS.md`: Defines the standard error shape.
-  - `docs/CHANGELOG-API.md`: Initial version 0.1.0 documented.
-  - `docs/SDK-PLAN.md`: Strategy for client generation defined.
+  - `docs/archivo/sprint-1/ERRORS.md`: Defines the standard error shape.
+  - `docs/archivo/sprint-1/CHANGELOG-API.md`: Initial version 0.1.0 documented.
+  - `docs/archivo/sprint-1/SDK-PLAN.md`: Strategy for client generation defined.
 - **Commit:** All changes are committed on the feature branch. The commit is ready for a Pull Request to `dev`.
 
 ### Next Steps:
