@@ -18,6 +18,12 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.
 - El esquema de Prisma (`schema.prisma`) fue actualizado para incluir timestamps `updatedAt` y asegurar que todos los modelos tengan tanto `createdAt` como `updatedAt`.
 - Se ha generado una nueva migración de base de datos para aplicar estos cambios en el esquema.
 
+## [0.2.0] - 2025-08-20
+
+### Added
+
+*   Endpoints and schemas for product reviews.
+
 ## [0.1.0] - 2025-08-14
 
 ### Agregado
