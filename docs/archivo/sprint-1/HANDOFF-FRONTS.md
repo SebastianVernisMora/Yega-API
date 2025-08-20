@@ -6,7 +6,7 @@ This document provides the necessary information for the frontend teams to consu
 
 The pull request with the latest API contract changes can be found here:
 
-[Link to Pull Request](https://github.com/Yega/Yega-API/pull/XX) _(Please replace XX with the actual PR number)_
+[Link to Pull Request](https://github.com/Yega/Yega-API/pull/1)
 
 ## Artifacts
 
@@ -15,6 +15,7 @@ The pull request with the latest API contract changes can be found here:
 
 ## Checklist for Frontend Teams
 
-- [ ] Review the API changelog in `docs/CHANGELOG-API.md`.
+- [ ] Review the API changelog in `docs/archivo/sprint-1/CHANGELOG-API.md`.
+- [ ] Install the latest client SDK from GitHub Packages.
 - [ ] Update frontend applications to use the new version of the client SDK.
 - [ ] Test the integration with the updated API.
