@@ -1,86 +1,71 @@
+// src/routes/catalog.ts
 import { Router } from 'express';
-import { PrismaClient } from '@prisma/client';
-import authMiddleware from '../middlewares/auth.js';
-import { requireRole } from '../middlewares/rbac.js';
-const router = Router();
-const prisma = new PrismaClient();
-// GET /catalog (Public)
-router.get('/', async (req, res, next) => {
-    try {
-        const page = Math.max(parseInt(String(req.query.page ?? '1'), 10), 1);
-        const limit = Math.min(Math.max(parseInt(String(req.query.limit ?? '20'), 10), 1), 50);
-        const skip = (page - 1) * limit;
-        const [items, total] = await prisma.$transaction([
-            prisma.product.findMany({ skip, take: limit, orderBy: { name: 'asc' } }),
-            prisma.product.count(),
-        ]);
-        res.set('X-Total-Count', String(total));
-        res.json(items);
-    }
-    catch (err) {
-        next(err);
-    }
-});
-// POST /catalog (Protected: admin, store)
-router.post('/', authMiddleware, requireRole('admin', 'store'), async (req, res, next) => {
-    try {
-        // TODO: If role is 'store', assertStoreOwnership(prisma, req.user.id, req.body.storeId)
-        const product = await prisma.product.create({
-            data: req.body,
-        });
-        res.status(201).json(product);
-    }
-    catch (err) {
-        next(err);
-    }
-});
-// PUT /catalog/:productId (Protected: admin, store)
-router.put('/:productId', authMiddleware, requireRole('admin', 'store'), async (req, res, next) => {
-    try {
-        const { productId } = req.params;
-        // TODO: If role is 'store', assertProductOwnership(prisma, req.user.id, productId)
-        const product = await prisma.product.update({
-            where: { id: productId },
-            data: req.body,
-        });
-        res.json(product);
-    }
-    catch (err) {
-        // Prisma's P2025 error code indicates record not found
-        if (err.code === 'P2025') {
-            return res.status(404).json({
-                error: {
-                    code: 'NOT_FOUND',
-                    http: 404,
-                    message: 'Product not found',
-                }
+import { authMiddleware as authenticate } from '../middlewares/auth';
+import { requireRole as authorize } from '../middlewares/rbac';
+export const createCatalogRouter = (prisma) => {
+    const router = Router();
+    // GET /catalog/products - Public endpoint to get a list of products
+    router.get('/products', async (req, res) => {
+        const { page = 1, limit = 10 } = req.query;
+        const pageNum = parseInt(page, 10);
+        const limitNum = parseInt(limit, 10);
+        try {
+            const products = await prisma.product.findMany({
+                skip: (pageNum - 1) * limitNum,
+                take: limitNum,
             });
+            const totalProducts = await prisma.product.count();
+            res.header('X-Total-Count', totalProducts.toString());
+            res.json(products);
         }
-        next(err);
-    }
-});
-// DELETE /catalog/:productId (Protected: admin, store)
-router.delete('/:productId', authMiddleware, requireRole('admin', 'store'), async (req, res, next) => {
-    try {
-        const { productId } = req.params;
-        // TODO: If role is 'store', assertProductOwnership(prisma, req.user.id, productId)
-        await prisma.product.delete({
-            where: { id: productId },
-        });
-        res.status(204).end();
-    }
-    catch (err) {
-        // Prisma's P2025 error code indicates record not found
-        if (err.code === 'P2025') {
-            return res.status(404).json({
-                error: {
-                    code: 'NOT_FOUND',
-                    http: 404,
-                    message: 'Product not found',
-                }
+        catch (error) {
+            res.status(500).json({ error: 'An error occurred while fetching products.' });
+        }
+    });
+    // GET /catalog/products/:id - Public endpoint to get a single product
+    router.get('/products/:id', async (req, res) => {
+        const { id } = req.params;
+        try {
+            const product = await prisma.product.findUnique({
+                where: { id },
             });
+            if (product) {
+                res.json(product);
+            }
+            else {
+                res.status(404).json({ error: 'Product not found.' });
+            }
         }
-        next(err);
-    }
-});
-export default router;
+        catch (error) {
+            res.status(500).json({ error: 'An error occurred while fetching the product.' });
+        }
+    });
+    // POST /catalog/products - Protected endpoint for store owners to create products
+    router.post('/products', authenticate, authorize('store'), async (req, res) => {
+        // TODO: Implement product creation logic
+        res.status(201).json({ message: 'Product created successfully (placeholder).' });
+    });
+    // PUT /catalog/products/:id - Protected endpoint for store owners to update products
+    router.put('/products/:id', authenticate, authorize('store'), async (req, res) => {
+        const { id } = req.params;
+        try {
+            const product = await prisma.product.update({
+                where: { id },
+                data: req.body,
+            });
+            res.json(product);
+        }
+        catch (error) {
+            if (error.code === 'P2025') {
+                return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Product not found' } });
+            }
+            res.status(500).json({ error: 'An error occurred while updating the product.' });
+        }
+    });
+    // DELETE /catalog/products/:id - Protected endpoint for store owners to delete products
+    router.delete('/products/:id', authenticate, authorize('store'), async (req, res) => {
+        // TODO: Implement product deletion logic
+        res.status(204).send();
+    });
+    return router;
+};

@@ -24,17 +24,17 @@ Crea un archivo `.env` a partir de `.env.example` y ajústalo a tu entorno local
 
 1.  **Instalar dependencias:**
     ```bash
-    npm install
+    pnpm install
     ```
 
 2.  **Ejecutar migraciones de base de datos:**
     ```bash
-    npx prisma migrate dev
+    pnpm prisma migrate dev
     ```
 
 3.  **Iniciar el servidor de desarrollo:**
     ```bash
-    npm run dev
+    pnpm dev
     ```
 
 ## Gestión del Sprint
