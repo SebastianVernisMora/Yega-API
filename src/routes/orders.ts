@@ -205,7 +205,9 @@ router.patch('/:orderId/status', async (req, res, next) => {
     }
 
     // Validate status transition (simplified for now)
-    const validTransitions = {
+    type OrderStatus = 'pending' | 'accepted' | 'preparing' | 'assigned' | 'on_route' | 'delivered' | 'canceled';
+
+    const validTransitions: Record<OrderStatus, OrderStatus[]> = {
       pending: ['accepted', 'canceled'],
       accepted: ['preparing', 'canceled'],
       preparing: ['assigned', 'canceled'],
@@ -215,8 +217,8 @@ router.patch('/:orderId/status', async (req, res, next) => {
       canceled: [],
     };
 
-    const currentStatus = order.status as keyof typeof validTransitions;
-    if (!validTransitions[currentStatus].includes(status)) {
+    const currentStatus = order.status as OrderStatus;
+    if (!validTransitions[currentStatus]?.includes(status as OrderStatus)) {
       return res.status(400).json({
         error: {
           code: 'INVALID_STATUS_TRANSITION',
