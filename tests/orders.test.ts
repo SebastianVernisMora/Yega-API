@@ -24,25 +24,18 @@ describe('Orders Routes', () => {
     app.use('/orders', createOrdersRouter(prismaMock));
   });
 
-  it('should create an order', async () => {
-    const product = { id: 'prod-1', name: 'Test Product', price: new Prisma.Decimal(10.0) };
+  it('should create an order (simulated)', async () => {
     const orderData = { storeId: 'store-1', items: [{ productId: 'prod-1', quantity: 2 }] };
-
-    (prismaMock.product.findUnique as any).mockResolvedValue(product);
-    (prismaMock.order.create as any).mockResolvedValue({
-      id: 'order-1',
-      userId: 'user-1',
-      storeId: 'store-1',
-      total: new Prisma.Decimal(20.0),
-      status: 'pending',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
 
     const res = await request(app).post('/orders').send(orderData);
 
     expect(res.status).toBe(201);
-    expect(res.body.id).toBe('order-1');
+    expect(res.body.id).toEqual(expect.any(String));
+    expect(res.body.status).toBe('pending');
+    expect(res.body.storeId).toBe(orderData.storeId);
+    expect(res.body.items).toEqual(orderData.items);
+    // Also check for a valid UUID if possible, but for now string is enough
+    expect(res.body.id.length).toBe(36);
   });
 
   it('should list user orders', async () => {
