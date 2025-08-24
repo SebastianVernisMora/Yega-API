@@ -34,7 +34,7 @@ describe('Orders Routes', () => {
       userId: 'user-1',
       storeId: 'store-1',
       total: new Prisma.Decimal(20.0),
-      status: 'pending',
+      status: 'PENDING',
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -47,7 +47,7 @@ describe('Orders Routes', () => {
 
   it('should list user orders', async () => {
     const orders = [
-      { id: 'order-1', userId: 'user-1', total: new Prisma.Decimal(20.0), status: 'pending', storeId: 's1', createdAt: new Date(), updatedAt: new Date() },
+      { id: 'order-1', userId: 'user-1', total: new Prisma.Decimal(20.0), status: 'PENDING', storeId: 's1', createdAt: new Date(), updatedAt: new Date() },
     ];
     (prismaMock.order.findMany as any).mockResolvedValue(orders);
     (prismaMock.order.count as any).mockResolvedValue(1);
@@ -56,5 +56,30 @@ describe('Orders Routes', () => {
     expect(res.status).toBe(200);
     expect(res.body).toHaveLength(1);
     expect(res.body[0].id).toBe('order-1');
+  });
+
+  it('should update order status with a valid transition', async () => {
+    const order = { id: 'order-1', status: 'PENDING', userId: 'user-1' };
+    (prismaMock.order.findFirst as any).mockResolvedValue(order);
+    (prismaMock.order.update as any).mockResolvedValue({ ...order, status: 'ACCEPTED' });
+
+    const res = await request(app)
+      .patch('/orders/order-1')
+      .send({ status: 'ACCEPTED' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('ACCEPTED');
+  });
+
+  it('should not update order status with an invalid transition', async () => {
+    const order = { id: 'order-1', status: 'PENDING', userId: 'user-1' };
+    (prismaMock.order.findFirst as any).mockResolvedValue(order);
+
+    const res = await request(app)
+      .patch('/orders/order-1')
+      .send({ status: 'DELIVERED' });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('INVALID_STATUS_TRANSITION');
   });
 });
