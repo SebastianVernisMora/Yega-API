@@ -37,6 +37,53 @@ Crea un archivo `.env` a partir de `.env.example` y ajústalo a tu entorno local
     pnpm dev
     ```
 
+## Deployment with PM2
+
+This project uses [PM2](https://pm2.keymetrics.io/) for process management in production environments. The configuration is defined in `ecosystem.config.js`.
+
+### Basic Commands
+
+* **Start the application:**
+  ```bash
+  # Start for a specific environment (development, staging, or production)
+  pm2 start ecosystem.config.js --env <environment>
+  ```
+  Example for staging:
+  ```bash
+  pm2 start ecosystem.config.js --env staging
+  ```
+
+* **Stop the application:**
+  ```bash
+  pm2 stop yega-api
+  ```
+
+* **Restart the application:**
+  ```bash
+  pm2 restart yega-api
+  ```
+
+* **Reload the application (zero-downtime):**
+  ```bash
+  pm2 reload yega-api
+  ```
+
+* **View application status:**
+  ```bash
+  pm2 status
+  ```
+
+* **Monitor logs:**
+  ```bash
+  pm2 logs yega-api
+  ```
+
+* **Enable automatic startup on server reboot:**
+  ```bash
+  pm2 startup
+  ```
+  This command will provide you with a command to execute, which you need to run with superuser privileges.
+
 ## Gestión del Sprint
 
 Este repositorio utiliza un [proyecto de GitHub](docs/BOARD-Sprint-1.md) para gestionar las tareas del sprint actual.
