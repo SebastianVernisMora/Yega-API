@@ -25,24 +25,42 @@ describe('Orders Routes', () => {
   });
 
   it('should create an order', async () => {
-    const product = { id: 'prod-1', name: 'Test Product', price: new Prisma.Decimal(10.0) };
+    const store = { id: 'store-1', name: 'Test Store' };
+    const product = { id: 'prod-1', name: 'Test Product', price: 10.0, storeId: 'store-1' };
     const orderData = { storeId: 'store-1', items: [{ productId: 'prod-1', quantity: 2 }] };
 
-    (prismaMock.product.findUnique as any).mockResolvedValue(product);
-    (prismaMock.order.create as any).mockResolvedValue({
+    const createdOrder = {
       id: 'order-1',
       userId: 'user-1',
       storeId: 'store-1',
-      total: new Prisma.Decimal(20.0),
+      total: 20.0,
       status: 'pending',
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      items: [{
+        id: 'item-1',
+        orderId: 'order-1',
+        productId: 'prod-1',
+        quantity: 2,
+        price: 10.0,
+        product: { id: 'prod-1', name: 'Test Product' }
+      }],
+      store: { id: 'store-1', name: 'Test Store' }
+    };
+
+    // Mock the transaction
+    (prismaMock.$transaction as any).mockImplementation(async (callback: any) => {
+      const tx = {
+        store: { findUnique: vi.fn().mockResolvedValue(store) },
+        product: { findMany: vi.fn().mockResolvedValue([product]) },
+        order: { create: vi.fn().mockResolvedValue(createdOrder) },
+      };
+      return await callback(tx);
     });
 
     const res = await request(app).post('/orders').send(orderData);
 
     expect(res.status).toBe(201);
     expect(res.body.id).toBe('order-1');
+    expect(prismaMock.$transaction).toHaveBeenCalled();
   });
 
   it('should list user orders', async () => {
