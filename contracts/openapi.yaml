@@ -869,7 +869,7 @@ components:
   schemas:
     User:
       type: object
-      required: [id, name, email, role]
+      required: [id, name, email, role, createdAt, updatedAt]
       additionalProperties: false
       properties:
         id:
@@ -886,9 +886,17 @@ components:
         role:
           type: string
           enum: [client, store, courier, admin]
+        createdAt:
+          type: string
+          format: date-time
+          readOnly: true
+        updatedAt:
+          type: string
+          format: date-time
+          readOnly: true
     Store:
       type: object
-      required: [id, name, ownerId]
+      required: [id, name, ownerId, createdAt, updatedAt]
       additionalProperties: false
       properties:
         id:
@@ -904,9 +912,17 @@ components:
         ownerId:
           type: string
           format: uuid
+        createdAt:
+          type: string
+          format: date-time
+          readOnly: true
+        updatedAt:
+          type: string
+          format: date-time
+          readOnly: true
     Product:
       type: object
-      required: [id, name, price, storeId]
+      required: [id, name, price, storeId, createdAt, updatedAt]
       additionalProperties: false
       properties:
         id:
@@ -926,6 +942,14 @@ components:
         storeId:
           type: string
           format: uuid
+        createdAt:
+          type: string
+          format: date-time
+          readOnly: true
+        updatedAt:
+          type: string
+          format: date-time
+          readOnly: true
     ProductCreate:
       type: object
       required: [name, price, storeId]
@@ -985,7 +1009,7 @@ components:
           maxLength: 500
     Order:
       type: object
-      required: [id, userId, items, status, total]
+      required: [id, userId, items, status, total, createdAt, updatedAt]
       additionalProperties: false
       properties:
         id:
@@ -1011,11 +1035,20 @@ components:
         createdAt:
           type: string
           format: date-time
+          readOnly: true
+        updatedAt:
+          type: string
+          format: date-time
+          readOnly: true
     OrderItem:
       type: object
-      required: [productId, quantity, price]
+      required: [id, productId, quantity, price, createdAt, updatedAt]
       additionalProperties: false
       properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
         productId:
           type: string
           format: uuid
@@ -1026,18 +1059,25 @@ components:
           type: number
           format: float
           minimum: 0
+        createdAt:
+          type: string
+          format: date-time
+          readOnly: true
+        updatedAt:
+          type: string
+          format: date-time
+          readOnly: true
     OrderStatus:
       type: string
-      enum: [pending, accepted, preparing, assigned, on_route, delivered, canceled]
+      enum: [pending, accepted, on_the_way, delivered, canceled]
       description: |
-        Estados válidos de un pedido:
-        - pending: Pedido creado por el cliente
-        - accepted: Tienda acepta el pedido
-        - preparing: Tienda está preparando el pedido
-        - assigned: Pedido asignado a un repartidor
-        - on_route: Repartidor en camino a entregar
-        - delivered: Pedido entregado
-        - canceled: Pedido cancelado
+        Flujo de estados de un pedido: `pending` → `accepted` → `on_the_way` → `delivered`.
+
+        - `pending`: Pedido creado por el cliente, pendiente de aceptación por la tienda.
+        - `accepted`: La tienda ha aceptado el pedido y lo está preparando.
+        - `on_the_way`: Un repartidor ha recogido el pedido y está en camino.
+        - `delivered`: El pedido ha sido entregado al cliente.
+        - `canceled`: El pedido ha sido cancelado.
     LoginRequest:
       type: object
       required: [email, password]

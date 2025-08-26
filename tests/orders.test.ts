@@ -24,23 +24,53 @@ describe('Orders Routes', () => {
     app.use('/orders', createOrdersRouter(prismaMock));
   });
 
-  it('should create an order (simulated)', async () => {
+
+  it('should create an order', async () => {
+    const store = { id: 'store-1', name: 'Test Store' };
+    const product = { id: 'prod-1', name: 'Test Product', price: 10.0, storeId: 'store-1' };
     const orderData = { storeId: 'store-1', items: [{ productId: 'prod-1', quantity: 2 }] };
+
+    const createdOrder = {
+      id: 'order-1',
+      userId: 'user-1',
+      storeId: 'store-1',
+      total: new Prisma.Decimal(20.0),
+      status: 'PENDING',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      items: [{
+        id: 'item-1',
+        orderId: 'order-1',
+        productId: 'prod-1',
+        quantity: 2,
+        price: 10.0,
+        product: { id: 'prod-1', name: 'Test Product' }
+      }],
+      store: { id: 'store-1', name: 'Test Store' }
+    };
+
+    // Mock the transaction
+    (prismaMock.$transaction as any).mockImplementation(async (callback: any) => {
+      const tx = {
+        store: { findUnique: vi.fn().mockResolvedValue(store) },
+        product: { findMany: vi.fn().mockResolvedValue([product]) },
+        order: { create: vi.fn().mockResolvedValue(createdOrder) },
+      };
+      return await callback(tx);
+
+    });
 
     const res = await request(app).post('/orders').send(orderData);
 
     expect(res.status).toBe(201);
-    expect(res.body.id).toEqual(expect.any(String));
-    expect(res.body.status).toBe('pending');
-    expect(res.body.storeId).toBe(orderData.storeId);
-    expect(res.body.items).toEqual(orderData.items);
-    // Also check for a valid UUID if possible, but for now string is enough
-    expect(res.body.id.length).toBe(36);
+    expect(res.body.id).toBe('order-1');
+    expect(prismaMock.$transaction).toHaveBeenCalled();
+
   });
 
   it('should list user orders', async () => {
     const orders = [
-      { id: 'order-1', userId: 'user-1', total: new Prisma.Decimal(20.0), status: 'pending', storeId: 's1', createdAt: new Date(), updatedAt: new Date() },
+      { id: 'order-1', userId: 'user-1', total: new Prisma.Decimal(20.0), status: 'PENDING', storeId: 's1', createdAt: new Date(), updatedAt: new Date() },
     ];
     (prismaMock.order.findMany as any).mockResolvedValue(orders);
     (prismaMock.order.count as any).mockResolvedValue(1);
@@ -49,5 +79,30 @@ describe('Orders Routes', () => {
     expect(res.status).toBe(200);
     expect(res.body).toHaveLength(1);
     expect(res.body[0].id).toBe('order-1');
+  });
+
+  it('should update order status with a valid transition', async () => {
+    const order = { id: 'order-1', status: 'PENDING', userId: 'user-1' };
+    (prismaMock.order.findFirst as any).mockResolvedValue(order);
+    (prismaMock.order.update as any).mockResolvedValue({ ...order, status: 'ACCEPTED' });
+
+    const res = await request(app)
+      .patch('/orders/order-1')
+      .send({ status: 'ACCEPTED' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('ACCEPTED');
+  });
+
+  it('should not update order status with an invalid transition', async () => {
+    const order = { id: 'order-1', status: 'PENDING', userId: 'user-1' };
+    (prismaMock.order.findFirst as any).mockResolvedValue(order);
+
+    const res = await request(app)
+      .patch('/orders/order-1')
+      .send({ status: 'DELIVERED' });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('INVALID_STATUS_TRANSITION');
   });
 });
