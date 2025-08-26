@@ -44,9 +44,8 @@ export const createAuthRouter = (prisma) => {
                     role,
                 },
             });
-            const expiresIn = (process.env.JWT_EXPIRES ?? '7d');
             const signOptions = {
-                expiresIn,
+                expiresIn: (process.env.JWT_EXPIRES || '7d'),
             };
             const token = jwt.sign({ sub: user.id, role: user.role }, JWT_SECRET, signOptions);
             const userForResponse = {
@@ -102,9 +101,8 @@ export const createAuthRouter = (prisma) => {
                     },
                 });
             }
-            const expiresIn = (process.env.JWT_EXPIRES ?? '7d');
             const signOptions = {
-                expiresIn,
+                expiresIn: (process.env.JWT_EXPIRES || '7d'),
             };
             const token = jwt.sign({ sub: user.id, role: user.role }, JWT_SECRET, signOptions);
             const userForResponse = {

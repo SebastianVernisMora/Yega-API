@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { authMiddleware } from '../middlewares/auth.js';
+import { randomUUID } from 'crypto';
 
 export const createOrdersRouter = (prisma: PrismaClient) => {
   const router = Router();
@@ -95,86 +96,88 @@ router.get('/:orderId', async (req, res, next) => {
 router.post('/', async (req, res, next) => {
   try {
     const userId = req.user!.id;
-    // Note: The request body is already validated by express-openapi-validator
-    const { storeId, items } = req.body;
+    const { storeId, items } = req.body; // Validated by OpenAPI
 
-    // Calculate total
-    let total = 0;
-    const orderItemsData = [];
-
-    // Get product details and calculate total
-    for (const item of items) {
-      const product = await prisma.product.findUnique({
-        where: { id: item.productId },
-      });
-
-      if (!product) {
-        return res.status(400).json({
-          error: {
-            code: 'INVALID_PRODUCT',
-            http: 400,
-            message: `Product with id ${item.productId} not found`,
-          },
-        });
-      }
-
-      const itemTotal = product.price.toNumber() * item.quantity;
-      total += itemTotal;
-
-      orderItemsData.push({
-        productId: item.productId,
-        quantity: item.quantity,
-        price: product.price,
-      });
+    // Basic validation
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ error: { code: 'BAD_REQUEST', message: 'Order must contain at least one item.' } });
     }
 
-    // Create order with items
-    const newOrder = await prisma.order.create({
-      data: {
-        userId,
-        storeId,
-        total,
-        items: {
-          create: orderItemsData,
+    const newOrder = await prisma.$transaction(async (tx) => {
+      // 1. Verify store exists
+      const store = await tx.store.findUnique({ where: { id: storeId } });
+      if (!store) {
+        throw { status: 404, code: 'STORE_NOT_FOUND', message: `Store with id ${storeId} not found.` };
+      }
+
+      // 2. Get all product details in one go
+      const productIds = items.map(item => item.productId);
+      const products = await tx.product.findMany({
+        where: {
+          id: { in: productIds },
+          storeId: storeId, // Ensure all products belong to the same store
         },
-      },
-      include: {
-        store: {
-          select: {
-            id: true,
-            name: true,
+      });
+
+      // 3. Validate products and map for quick access
+      const productMap = new Map(products.map(p => [p.id, p]));
+      const notFoundProducts = productIds.filter(id => !productMap.has(id));
+
+      if (notFoundProducts.length > 0) {
+        throw { status: 400, code: 'INVALID_PRODUCTS', message: `Products not found or do not belong to the store: ${notFoundProducts.join(', ')}` };
+      }
+
+      // 4. Calculate total and prepare order items
+      let total = 0;
+      const orderItemsData = items.map(item => {
+        const product = productMap.get(item.productId)!;
+        const itemTotal = product.price * item.quantity;
+        total += itemTotal;
+        return {
+          productId: item.productId,
+          quantity: item.quantity,
+          price: product.price,
+        };
+      });
+
+      // 5. Create the order and its items
+      return tx.order.create({
+        data: {
+          userId,
+          storeId,
+          total,
+          status: 'pending',
+          items: {
+            create: orderItemsData,
           },
         },
-        items: {
-          include: {
-            product: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
+        include: {
+          store: { select: { id: true, name: true } },
+          items: { include: { product: { select: { id: true, name: true } } } },
         },
-      },
+      });
     });
 
     res.status(201).json(newOrder);
-  } catch (err) {
+  } catch (err: any) {
+    if (err.status) {
+      return res.status(err.status).json({ error: { code: err.code, message: err.message } });
+    }
     next(err);
   }
 });
 
-// PATCH /:orderId/status - Update order status
-router.patch('/:orderId/status', async (req, res, next) => {
+// PATCH /:id - Update order status
+router.patch('/:id', async (req, res, next) => {
   try {
     const userId = req.user!.id;
-    const { orderId } = req.params;
+    const { id } = req.params;
     const { status } = req.body;
 
     // Check if user owns the order or is a store/courier/admin
     const order = await prisma.order.findFirst({
       where: {
-        id: orderId,
+        id: id,
         OR: [
           { userId },
           { store: { ownerId: userId } },
@@ -205,7 +208,9 @@ router.patch('/:orderId/status', async (req, res, next) => {
     }
 
     // Validate status transition (simplified for now)
-    const validTransitions = {
+    type OrderStatus = 'pending' | 'accepted' | 'preparing' | 'assigned' | 'on_route' | 'delivered' | 'canceled';
+
+    const validTransitions: Record<OrderStatus, OrderStatus[]> = {
       pending: ['accepted', 'canceled'],
       accepted: ['preparing', 'canceled'],
       preparing: ['assigned', 'canceled'],
@@ -215,7 +220,17 @@ router.patch('/:orderId/status', async (req, res, next) => {
       canceled: [],
     };
 
-    const currentStatus = order.status as keyof typeof validTransitions;
+    const currentStatus = order.status as OrderStatus;
+    if (!validTransitions[currentStatus]?.includes(status as OrderStatus)) {
+    const validTransitions: Record<string, string[]> = {
+      PENDING: ['ACCEPTED', 'CANCELED'],
+      ACCEPTED: ['ON_THE_WAY', 'CANCELED'],
+      ON_THE_WAY: ['DELIVERED', 'CANCELED'],
+      DELIVERED: [],
+      CANCELED: [],
+    };
+
+    const currentStatus = order.status;
     if (!validTransitions[currentStatus].includes(status)) {
       return res.status(400).json({
         error: {
@@ -228,7 +243,7 @@ router.patch('/:orderId/status', async (req, res, next) => {
 
     // Update order status
     const updatedOrder = await prisma.order.update({
-      where: { id: orderId },
+      where: { id: id },
       data: { status },
       include: {
         store: {
