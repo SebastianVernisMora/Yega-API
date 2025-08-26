@@ -37,6 +37,7 @@ Crea un archivo `.env` a partir de `.env.example` y ajústalo a tu entorno local
     pnpm dev
     ```
 
+
 ## Despliegue con PM2
 
 Para entornos de producción y staging, se recomienda usar [PM2](https://pm2.keymetrics.io/) para gestionar el proceso de la aplicación.
