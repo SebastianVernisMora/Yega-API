@@ -37,52 +37,61 @@ Crea un archivo `.env` a partir de `.env.example` y ajústalo a tu entorno local
     pnpm dev
     ```
 
-## Deployment with PM2
 
-This project uses [PM2](https://pm2.keymetrics.io/) for process management in production environments. The configuration is defined in `ecosystem.config.js`.
+## Despliegue con PM2
 
-### Basic Commands
+Para entornos de producción y staging, se recomienda usar [PM2](https://pm2.keymetrics.io/) para gestionar el proceso de la aplicación.
+El fichero `ecosystem.config.js` en la raíz del proyecto contiene la configuración para los diferentes entornos.
 
-* **Start the application:**
-  ```bash
-  # Start for a specific environment (development, staging, or production)
-  pm2 start ecosystem.config.js --env <environment>
-  ```
-  Example for staging:
-  ```bash
-  pm2 start ecosystem.config.js --env staging
-  ```
+### Comandos básicos
 
-* **Stop the application:**
-  ```bash
-  pm2 stop yega-api
-  ```
+-   **Iniciar la aplicación (staging):**
+    ```bash
+    pm2 start ecosystem.config.js --env staging
+    ```
 
-* **Restart the application:**
-  ```bash
-  pm2 restart yega-api
-  ```
+-   **Iniciar la aplicación (producción):**
+    ```bash
+    pm2 start ecosystem.config.js --env production
+    ```
 
-* **Reload the application (zero-downtime):**
-  ```bash
-  pm2 reload yega-api
-  ```
+-   **Ver el estado de las aplicaciones:**
+    ```bash
+    pm2 status
+    ```
 
-* **View application status:**
-  ```bash
-  pm2 status
-  ```
+-   **Monitorear logs y métricas:**
+    ```bash
+    pm2 monit
+    ```
 
-* **Monitor logs:**
-  ```bash
-  pm2 logs yega-api
-  ```
+-   **Ver logs en tiempo real:**
+    ```bash
+    pm2 logs yega-api
+    ```
 
-* **Enable automatic startup on server reboot:**
-  ```bash
-  pm2 startup
-  ```
-  This command will provide you with a command to execute, which you need to run with superuser privileges.
+-   **Recargar la aplicación (sin downtime):**
+    ```bash
+    pm2 reload yega-api
+    ```
+
+-   **Parar la aplicación:**
+    ```bash
+    pm2 stop yega-api
+    ```
+
+-   **Reiniciar la aplicación:**
+    ```bash
+    pm2 restart yega-api
+    ```
+
+### Inicio automático
+
+Para que PM2 se inicie automáticamente al reiniciar el servidor, ejecuta el siguiente comando y sigue las instrucciones:
+
+```bash
+pm2 startup
+```
 
 ## Gestión del Sprint
 

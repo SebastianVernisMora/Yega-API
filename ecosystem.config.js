@@ -3,6 +3,8 @@ module.exports = {
     {
       name: 'yega-api',
       script: 'dist/index.js',
+      instances: 'max',
+      exec_mode: 'cluster',
       autorestart: true,
       watch: false,
       max_memory_restart: '150M',
@@ -13,7 +15,7 @@ module.exports = {
       env_development: {
         NODE_ENV: 'development',
         PORT: 3001,
-        CORS_ORIGINS: 'http://localhost:3000,http://localhost:3001,http://localhost:8080',
+        CORS_ORIGINS: 'http://localhost:3000,http://localhost:3001,http://localhost:5173',
       },
       env_staging: {
         NODE_ENV: 'staging',
