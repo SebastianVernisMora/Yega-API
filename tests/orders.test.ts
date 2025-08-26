@@ -24,6 +24,7 @@ describe('Orders Routes', () => {
     app.use('/orders', createOrdersRouter(prismaMock));
   });
 
+
   it('should create an order', async () => {
     const store = { id: 'store-1', name: 'Test Store' };
     const product = { id: 'prod-1', name: 'Test Product', price: 10.0, storeId: 'store-1' };
@@ -64,6 +65,7 @@ describe('Orders Routes', () => {
     expect(res.status).toBe(201);
     expect(res.body.id).toBe('order-1');
     expect(prismaMock.$transaction).toHaveBeenCalled();
+
   });
 
   it('should list user orders', async () => {
