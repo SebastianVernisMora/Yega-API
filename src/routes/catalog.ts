@@ -44,13 +44,13 @@ export const createCatalogRouter = (prisma: PrismaClient) => {
   });
 
   // POST /catalog/products - Protected endpoint for store owners to create products
-  router.post('/products', authenticate, authorize(['store']), async (req, res) => {
+  router.post('/products', authenticate, authorize('store'), async (req, res) => {
     // TODO: Implement product creation logic
     res.status(201).json({ message: 'Product created successfully (placeholder).' });
   });
 
   // PUT /catalog/products/:id - Protected endpoint for store owners to update products
-  router.put('/products/:id', authenticate, authorize(['store']), async (req, res) => {
+  router.put('/products/:id', authenticate, authorize('store'), async (req, res) => {
     const { id } = req.params;
     try {
       const product = await prisma.product.update({
@@ -67,7 +67,7 @@ export const createCatalogRouter = (prisma: PrismaClient) => {
   });
 
   // DELETE /catalog/products/:id - Protected endpoint for store owners to delete products
-  router.delete('/products/:id', authenticate, authorize(['store']), async (req, res) => {
+  router.delete('/products/:id', authenticate, authorize('store'), async (req, res) => {
     // TODO: Implement product deletion logic
     res.status(204).send();
   });

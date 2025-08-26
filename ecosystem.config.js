@@ -12,6 +12,7 @@ module.exports = {
       error_file: '~/.pm2/logs/yega-api-error.log',
       out_file: '~/.pm2/logs/yega-api-out.log',
       combine_logs: true,
+
       env_development: {
         NODE_ENV: 'development',
         PORT: 3001,

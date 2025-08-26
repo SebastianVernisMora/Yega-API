@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import jwt, { SignOptions } from 'jsonwebtoken';
 import pino from 'pino';
+import { StringValue } from 'ms';
 
 export const createAuthRouter = (prisma: PrismaClient) => {
   const log = pino({ transport: { target: 'pino-pretty' } });
@@ -56,7 +57,7 @@ router.post('/register', async (req, res, next) => {
     });
 
     const signOptions: SignOptions = {
-      expiresIn: process.env.JWT_EXPIRES || '7d',
+      expiresIn: (process.env.JWT_EXPIRES || '7d') as StringValue,
     };
 
     const token = jwt.sign(
@@ -127,7 +128,7 @@ router.post('/login', async (req, res, next) => {
     }
 
     const signOptions: SignOptions = {
-      expiresIn: process.env.JWT_EXPIRES || '7d',
+      expiresIn: (process.env.JWT_EXPIRES || '7d') as StringValue,
     };
 
     const token = jwt.sign(
