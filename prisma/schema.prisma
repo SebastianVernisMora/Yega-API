@@ -38,6 +38,7 @@ model Product {
   name        String
   description String?
   price       Float
+  stock       Int       @default(0)
   store       Store     @relation(fields: [storeId], references: [id])
   storeId     String
   createdAt   DateTime  @default(now())
@@ -55,7 +56,7 @@ model Order {
   updatedAt DateTime    @updatedAt
   items     OrderItem[]
   status    OrderStatus @default(PENDING)
-  total     Decimal     @db.Decimal(10, 2)
+  total     Float
 }
 
 enum OrderStatus {

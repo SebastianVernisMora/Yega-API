@@ -939,6 +939,9 @@ components:
           type: number
           format: float
           minimum: 0
+        stock:
+          type: integer
+          minimum: 0
         storeId:
           type: string
           format: uuid
