@@ -166,17 +166,17 @@ router.post('/', async (req, res, next) => {
   }
 });
 
-// PATCH /:orderId/status - Update order status
-router.patch('/:orderId/status', async (req, res, next) => {
+// PATCH /:id - Update order status
+router.patch('/:id', async (req, res, next) => {
   try {
     const userId = req.user!.id;
-    const { orderId } = req.params;
+    const { id } = req.params;
     const { status } = req.body;
 
     // Check if user owns the order or is a store/courier/admin
     const order = await prisma.order.findFirst({
       where: {
-        id: orderId,
+        id: id,
         OR: [
           { userId },
           { store: { ownerId: userId } },
@@ -206,18 +206,16 @@ router.patch('/:orderId/status', async (req, res, next) => {
       });
     }
 
-    // Validate status transition (simplified for now)
-    const validTransitions = {
-      pending: ['accepted', 'canceled'],
-      accepted: ['preparing', 'canceled'],
-      preparing: ['assigned', 'canceled'],
-      assigned: ['on_route', 'canceled'],
-      on_route: ['delivered', 'canceled'],
-      delivered: [],
-      canceled: [],
+    // Validate status transition
+    const validTransitions: Record<string, string[]> = {
+      PENDING: ['ACCEPTED', 'CANCELED'],
+      ACCEPTED: ['ON_THE_WAY', 'CANCELED'],
+      ON_THE_WAY: ['DELIVERED', 'CANCELED'],
+      DELIVERED: [],
+      CANCELED: [],
     };
 
-    const currentStatus = order.status as keyof typeof validTransitions;
+    const currentStatus = order.status;
     if (!validTransitions[currentStatus].includes(status)) {
       return res.status(400).json({
         error: {
@@ -230,7 +228,7 @@ router.patch('/:orderId/status', async (req, res, next) => {
 
     // Update order status
     const updatedOrder = await prisma.order.update({
-      where: { id: orderId },
+      where: { id: id },
       data: { status },
       include: {
         store: {
