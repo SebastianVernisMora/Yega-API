@@ -207,21 +207,6 @@ router.patch('/:id', async (req, res, next) => {
       });
     }
 
-    // Validate status transition (simplified for now)
-    type OrderStatus = 'pending' | 'accepted' | 'preparing' | 'assigned' | 'on_route' | 'delivered' | 'canceled';
-
-    const validTransitions: Record<OrderStatus, OrderStatus[]> = {
-      pending: ['accepted', 'canceled'],
-      accepted: ['preparing', 'canceled'],
-      preparing: ['assigned', 'canceled'],
-      assigned: ['on_route', 'canceled'],
-      on_route: ['delivered', 'canceled'],
-      delivered: [],
-      canceled: [],
-    };
-
-    const currentStatus = order.status as OrderStatus;
-    if (!validTransitions[currentStatus]?.includes(status as OrderStatus)) {
     const validTransitions: Record<string, string[]> = {
       PENDING: ['ACCEPTED', 'CANCELED'],
       ACCEPTED: ['ON_THE_WAY', 'CANCELED'],

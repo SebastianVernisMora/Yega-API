@@ -46,12 +46,13 @@ import { createAuthRouter } from './routes/auth.js';
 import { createCatalogRouter } from './routes/catalog.js';
 import { createOrdersRouter } from './routes/orders.js';
 import { createStoresRouter } from './routes/stores.js';
+import { authMiddleware } from './middlewares/auth.js';
 
 // 3) Aquí van tus rutas reales (las protegidas seguirán lo definido en el contrato)
 app.use('/auth', createAuthRouter(prisma));
 app.use('/catalog', createCatalogRouter(prisma));
-app.use('/orders', createOrdersRouter(prisma));
-app.use('/stores', createStoresRouter(prisma));
+app.use('/orders', authMiddleware, createOrdersRouter(prisma));
+app.use('/stores', authMiddleware, createStoresRouter(prisma));
 
 
 // 4) Manejo de errores estándar (incluye errores del validador)

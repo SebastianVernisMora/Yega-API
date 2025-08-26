@@ -14,6 +14,7 @@ describe('Auth routes', () => {
 
   beforeEach(() => {
     vi.stubEnv('JWT_SECRET', 'test-secret');
+    vi.stubEnv('JWT_REFRESH_SECRET', 'test-refresh-secret');
     vi.spyOn(process, 'exit').mockImplementation((() => {}) as (code?: number) => never);
 
     prismaMock = createPrismaMock();
@@ -45,7 +46,8 @@ describe('Auth routes', () => {
       });
 
     expect(res.status).toBe(201);
-    expect(res.body).toHaveProperty('token');
+    expect(res.body).toHaveProperty('accessToken');
+    expect(res.body).toHaveProperty('refreshToken');
     expect(res.body.user.email).toBe('test@example.com');
   });
 
@@ -91,7 +93,8 @@ describe('Auth routes', () => {
       .send({ email: 'test@example.com', password: 'password123' });
 
     expect(res.status).toBe(200);
-    expect(res.body).toHaveProperty('token');
+    expect(res.body).toHaveProperty('accessToken');
+    expect(res.body).toHaveProperty('refreshToken');
   });
 
   it('does not log in with invalid credentials', async () => {
@@ -103,5 +106,38 @@ describe('Auth routes', () => {
 
     expect(res.status).toBe(401);
     expect(res.body.error.code).toBe('AUTH_INVALID');
+  });
+
+  it('refreshes a token', async () => {
+    const user = {
+      id: 'user-1',
+      refreshToken: 'hashed_refresh_token',
+    };
+    (prismaMock.user.findUnique as any).mockResolvedValue(user);
+    (bcrypt.compare as any).mockResolvedValue(true);
+    (prismaMock.user.update as any).mockResolvedValue({});
+
+    // First, log in to get a refresh token
+    const loginRes = await request(app)
+      .post('/auth/login')
+      .send({ email: 'test@example.com', password: 'password123' });
+
+    const { refreshToken } = loginRes.body;
+
+    const res = await request(app)
+      .post('/auth/refresh')
+      .send({ refreshToken });
+
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveProperty('accessToken');
+  });
+
+  it('does not refresh with an invalid token', async () => {
+    const res = await request(app)
+      .post('/auth/refresh')
+      .send({ refreshToken: 'invalid_token' });
+
+    expect(res.status).toBe(401);
+    expect(res.body.error.code).toBe('INVALID_REFRESH_TOKEN');
   });
 });

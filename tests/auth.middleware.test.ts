@@ -21,10 +21,13 @@ describe('Auth Middleware', () => {
         authorization: 'Bearer valid_token',
       },
     } as Request;
-    const res = {} as Response;
+    const res = {
+      status: vi.fn(() => res),
+      json: vi.fn(),
+    } as any;
     const next = vi.fn() as NextFunction;
 
-    (jwt.verify as any).mockReturnValue({ id: 'user1', role: 'client' });
+    (jwt.verify as any).mockReturnValue({ sub: 'user1', role: 'client' });
 
     authMiddleware(req, res, next);
 

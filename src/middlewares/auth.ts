@@ -8,7 +8,7 @@ if (!JWT_SECRET) {
 }
 
 interface JwtPayload {
-  id: string;
+  sub: string;
   role: string;
 }
 
@@ -30,11 +30,11 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
 
-    if (typeof decoded !== 'object' || decoded === null || !('id' in decoded) || !('role' in decoded)) {
+    if (typeof decoded !== 'object' || decoded === null || !('sub' in decoded) || !('role' in decoded)) {
       throw new Error('Invalid token payload');
     }
 
-    req.user = { id: (decoded as JwtPayload).id, role: (decoded as JwtPayload).role };
+    req.user = { id: (decoded as JwtPayload).sub, role: (decoded as JwtPayload).role };
     next();
   } catch {
     return res.status(401).json({

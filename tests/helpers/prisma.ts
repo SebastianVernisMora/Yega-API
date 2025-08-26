@@ -6,6 +6,7 @@ export const createPrismaMock = () => {
     user: {
       findUnique: vi.fn(),
       create: vi.fn(),
+      update: vi.fn(),
     },
     store: {
       findUnique: vi.fn(),
