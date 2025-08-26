@@ -5,8 +5,8 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 model User {
@@ -37,7 +37,7 @@ model Product {
   id          String    @id @default(uuid())
   name        String
   description String?
-  price       Decimal   @db.Decimal(10, 2)
+  price       Float
   store       Store     @relation(fields: [storeId], references: [id])
   storeId     String
   createdAt   DateTime  @default(now())
@@ -73,7 +73,7 @@ model OrderItem {
   product   Product  @relation(fields: [productId], references: [id])
   productId String
   quantity  Int
-  price     Decimal  @db.Decimal(10, 2)
+  price     Float
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
