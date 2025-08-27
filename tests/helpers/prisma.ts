@@ -29,6 +29,10 @@ export const createPrismaMock = () => {
         create: vi.fn(),
         update: vi.fn(),
     },
+    payment: {
+        create: vi.fn(),
+        update: vi.fn(),
+    },
     $transaction: vi.fn(),
   } as unknown as PrismaClient;
 };

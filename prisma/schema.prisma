@@ -54,16 +54,22 @@ model Order {
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
   items     OrderItem[]
-  status    OrderStatus @default(PENDING)
-  total     Decimal     @db.Decimal(10, 2)
+  status    String @default("PAYMENT_PENDING") // PAYMENT_PENDING | PAID | PENDING | ACCEPTED | ON_THE_WAY | DELIVERED | CANCELED
+  total     Float
+  Payment   Payment[]
 }
 
-enum OrderStatus {
-  PENDING
-  ACCEPTED
-  ON_THE_WAY
-  DELIVERED
-  CANCELED
+model Payment {
+  id                String   @id @default(uuid())
+  order             Order    @relation(fields: [orderId], references: [id])
+  orderId           String
+  provider          String   @default("stripe")
+  providerPaymentId String   @unique
+  amount            Float
+  currency          String   @default("mxn")
+  status            String   @default("pending") // pending | completed | failed
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }
 
 model OrderItem {
