@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { OrderStatus, PrismaClient } from '@prisma/client';
 import { authMiddleware } from '../middlewares/auth.js';
 import { randomUUID } from 'crypto';
 
@@ -127,12 +127,38 @@ router.post('/', async (req, res, next) => {
         throw { status: 400, code: 'INVALID_PRODUCTS', message: `Products not found or do not belong to the store: ${notFoundProducts.join(', ')}` };
       }
 
-      // 4. Calculate total and prepare order items
-      let total = 0;
+      // 4. Validate stock, calculate total, and prepare order items
+      const shippingCost = 5.0; // Flat rate shipping
+      let subTotal = 0;
+      const stockUpdates: Promise<any>[] = [];
+
+      for (const item of items) {
+        const product = productMap.get(item.productId)!;
+
+        // Stock validation
+        if (product.stock < item.quantity) {
+          throw { status: 400, code: 'INSUFFICIENT_STOCK', message: `Insufficient stock for product ${product.name}. Available: ${product.stock}, Requested: ${item.quantity}` };
+        }
+
+        subTotal += product.price * item.quantity;
+
+        // Prepare stock update
+        stockUpdates.push(
+          tx.product.update({
+            where: { id: product.id },
+            data: { stock: { decrement: item.quantity } },
+          })
+        );
+      }
+
+      // Execute all stock updates
+      await Promise.all(stockUpdates);
+
+      const total = subTotal + shippingCost;
+
+      // 5. Create the order and its items
       const orderItemsData = items.map(item => {
         const product = productMap.get(item.productId)!;
-        const itemTotal = product.price * item.quantity;
-        total += itemTotal;
         return {
           productId: item.productId,
           quantity: item.quantity,
@@ -140,13 +166,12 @@ router.post('/', async (req, res, next) => {
         };
       });
 
-      // 5. Create the order and its items
       return tx.order.create({
         data: {
           userId,
           storeId,
           total,
-          status: 'pending',
+          status: 'PENDING',
           items: {
             create: orderItemsData,
           },
@@ -167,48 +192,44 @@ router.post('/', async (req, res, next) => {
   }
 });
 
-// PATCH /:id - Update order status
-router.patch('/:id', async (req, res, next) => {
+// PATCH /:orderId/status - Update order status
+router.patch('/:orderId/status', async (req, res, next) => {
   try {
     const userId = req.user!.id;
-    const { id } = req.params;
-    const { status } = req.body;
+    const { orderId } = req.params;
+    const { status: newStatus } = req.body;
 
-    // Check if user owns the order or is a store/courier/admin
+    if (!newStatus || typeof newStatus !== 'string') {
+        return res.status(400).json({ error: { code: 'BAD_REQUEST', message: 'Status must be a non-empty string.' } });
+    }
+
+    const newStatusUpper = newStatus.toUpperCase() as OrderStatus;
+    if (!Object.values(OrderStatus).includes(newStatusUpper)) {
+        return res.status(400).json({ error: { code: 'BAD_REQUEST', message: `Invalid status: ${newStatus}` } });
+    }
+
     const order = await prisma.order.findFirst({
       where: {
-        id: id,
-        OR: [
-          { userId },
-          { store: { ownerId: userId } },
-        ],
+        id: orderId,
+        OR: [{ userId }, { store: { ownerId: userId } }],
       },
     });
 
     if (!order) {
       return res.status(404).json({
-        error: {
-          code: 'NOT_FOUND',
-          http: 404,
-          message: 'Order not found',
-        },
+        error: { code: 'NOT_FOUND', http: 404, message: 'Order not found' },
       });
     }
 
-    // Check if user has permission to update status
     const userRole = req.user!.role;
     if (userRole !== 'store' && userRole !== 'courier' && userRole !== 'admin' && order.userId !== userId) {
       return res.status(403).json({
-        error: {
-          code: 'FORBIDDEN',
-          http: 403,
-          message: 'You do not have permission to update this order status',
-        },
+        error: { code: 'FORBIDDEN', http: 403, message: 'You do not have permission to update this order status' },
       });
     }
 
     // Validate status transition
-    const validTransitions: Record<string, string[]> = {
+    const validTransitions: Record<OrderStatus, OrderStatus[]> = {
       PAYMENT_PENDING: ['PAID', 'CANCELED'],
       PAID: ['PENDING'],
       PENDING: ['ACCEPTED', 'CANCELED'],
@@ -218,21 +239,20 @@ router.patch('/:id', async (req, res, next) => {
       CANCELED: [],
     };
 
-    const currentStatus = order.status;
-    if (!validTransitions[currentStatus]?.includes(status)) {
+    const currentStatus = order.status as OrderStatus;
+    if (!validTransitions[currentStatus]?.includes(newStatusUpper)) {
       return res.status(400).json({
         error: {
           code: 'INVALID_STATUS_TRANSITION',
           http: 400,
-          message: `Cannot transition from ${currentStatus} to ${status}`,
+          message: `Cannot transition from ${currentStatus} to ${newStatusUpper}`,
         },
       });
     }
 
-    // Update order status
     const updatedOrder = await prisma.order.update({
-      where: { id: id },
-      data: { status },
+      where: { id: orderId },
+      data: { status: newStatusUpper },
       include: {
         store: {
           select: {

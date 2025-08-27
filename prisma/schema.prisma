@@ -38,6 +38,7 @@ model Product {
   name        String
   description String?
   price       Float
+  stock       Int       @default(0)
   store       Store     @relation(fields: [storeId], references: [id])
   storeId     String
   createdAt   DateTime  @default(now())
@@ -54,7 +55,7 @@ model Order {
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
   items     OrderItem[]
-  status    String @default("PAYMENT_PENDING") // PAYMENT_PENDING | PAID | PENDING | ACCEPTED | ON_THE_WAY | DELIVERED | CANCELED
+  status    OrderStatus @default(PAYMENT_PENDING)
   total     Float
   Payment   Payment[]
 }
@@ -82,4 +83,14 @@ model OrderItem {
   price     Float
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+enum OrderStatus {
+  PAYMENT_PENDING
+  PAID
+  PENDING
+  ACCEPTED
+  ON_THE_WAY
+  DELIVERED
+  CANCELED
 }
