@@ -799,6 +799,109 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /payments/intent:
+    post:
+      summary: Create a payment intent
+      operationId: paymentsCreateIntent
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePaymentIntentRequest'
+      responses:
+        '200':
+          description: Payment intent created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreatePaymentIntentResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Order not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /payments/confirm:
+    post:
+      summary: Confirm a payment
+      operationId: paymentsConfirm
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfirmPaymentRequest'
+      responses:
+        '200':
+          description: Payment confirmed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Payment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /payments/webhook:
+    post:
+      summary: Handle Stripe webhooks
+      operationId: paymentsHandleWebhook
+      security: []
+      requestBody:
+        description: Stripe event payload
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Webhook received
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  received:
+                    type: boolean
+                    example: true
+        '400':
+          description: Invalid webhook signature or payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 components:
   securitySchemes:
     bearerAuth:
@@ -1069,15 +1172,32 @@ components:
           readOnly: true
     OrderStatus:
       type: string
-      enum: [pending, accepted, on_the_way, delivered, canceled]
+      enum: [payment_pending, paid, pending, accepted, on_the_way, delivered, canceled]
       description: |
-        Flujo de estados de un pedido: `pending` → `accepted` → `on_the_way` → `delivered`.
+        Flujo de estados de un pedido: `payment_pending` -> `paid` -> `pending` → `accepted` → `on_the_way` → `delivered`.
 
+        - `payment_pending`: Esperando el pago.
+        - `paid`: El pago ha sido completado.
         - `pending`: Pedido creado por el cliente, pendiente de aceptación por la tienda.
         - `accepted`: La tienda ha aceptado el pedido y lo está preparando.
         - `on_the_way`: Un repartidor ha recogido el pedido y está en camino.
         - `delivered`: El pedido ha sido entregado al cliente.
         - `canceled`: El pedido ha sido cancelado.
+    CreatePaymentIntentRequest:
+      type: object
+      required: [orderId]
+      additionalProperties: false
+      properties:
+        orderId:
+          type: string
+          format: uuid
+    CreatePaymentIntentResponse:
+      type: object
+      required: [clientSecret]
+      additionalProperties: false
+      properties:
+        clientSecret:
+          type: string
     LoginRequest:
       type: object
       required: [email, password]

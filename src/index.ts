@@ -46,12 +46,19 @@ import { createAuthRouter } from './routes/auth.js';
 import { createCatalogRouter } from './routes/catalog.js';
 import { createOrdersRouter } from './routes/orders.js';
 import { createStoresRouter } from './routes/stores.js';
+import { createPaymentsRouter } from './routes/payments.js';
+import Stripe from 'stripe';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+    apiVersion: '2024-06-20',
+  });
 
 // 3) Aquí van tus rutas reales (las protegidas seguirán lo definido en el contrato)
 app.use('/auth', createAuthRouter(prisma));
 app.use('/catalog', createCatalogRouter(prisma));
 app.use('/orders', createOrdersRouter(prisma));
 app.use('/stores', createStoresRouter(prisma));
+app.use('/payments', createPaymentsRouter(prisma, stripe));
 
 
 // 4) Manejo de errores estándar (incluye errores del validador)

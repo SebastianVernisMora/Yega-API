@@ -11,6 +11,9 @@ importers:
       '@prisma/client':
         specifier: ^5.18.0
         version: 5.22.0(prisma@5.22.0)
+      '@types/ms':
+        specifier: ^2.1.0
+        version: 2.1.0
       bcryptjs:
         specifier: ^2.4.3
         version: 2.4.3
@@ -32,6 +35,9 @@ importers:
       jsonwebtoken:
         specifier: ^9.0.2
         version: 9.0.2
+      ms:
+        specifier: ^2.1.3
+        version: 2.1.3
       mysql2:
         specifier: ^3.11.0
         version: 3.14.3
@@ -47,6 +53,9 @@ importers:
       prisma:
         specifier: ^5.18.0
         version: 5.22.0
+      stripe:
+        specifier: ^16.2.0
+        version: 16.12.0
     devDependencies:
       '@types/bcryptjs':
         specifier: ^2.4.2
@@ -58,7 +67,7 @@ importers:
         specifier: ^4.17.21
         version: 4.17.23
       '@types/jsonwebtoken':
-        specifier: ^9.0.6
+        specifier: ^9.0.10
         version: 9.0.10
       '@types/supertest':
         specifier: ^2.0.12
@@ -2046,6 +2055,10 @@ packages:
 
   strip-literal@2.1.1:
     resolution: {integrity: sha512-631UJ6O00eNGfMiWG78ck80dfBab8X6IVFB51jZK5Icd7XAs60Z5y7QdSd/wGIklnWvRbUNloVzhOKKmutxQ6Q==}
+
+  stripe@16.12.0:
+    resolution: {integrity: sha512-H7eFVLDxeTNNSn4JTRfL2//LzCbDrMSZ+2q1c7CanVWgK2qIW5TwS+0V7N9KcKZZNpYh/uCqK0PyZh/2UsaAtQ==}
+    engines: {node: '>=12.*'}
 
   superagent@8.1.2:
     resolution: {integrity: sha512-6WTxW1EB6yCxV5VFOIPQruWGHqc3yI7hEmZK6h+pyk69Lk/Ut7rLUY6W/ONF2MjBuGjvmMiIpsrVJ2vjrHlslA==}
@@ -4244,6 +4257,11 @@ snapshots:
   strip-literal@2.1.1:
     dependencies:
       js-tokens: 9.0.1
+
+  stripe@16.12.0:
+    dependencies:
+      '@types/node': 24.3.0
+      qs: 6.14.0
 
   superagent@8.1.2:
     dependencies:
