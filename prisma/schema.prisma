@@ -55,7 +55,7 @@ model Order {
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
   items     OrderItem[]
-  status    OrderStatus @default(PAYMENT_PENDING)
+  status    String @default("PAYMENT_PENDING") // PAYMENT_PENDING | PAID | PENDING | ACCEPTED | ON_THE_WAY | DELIVERED | CANCELED
   total     Float
   Payment   Payment[]
 }
@@ -83,14 +83,4 @@ model OrderItem {
   price     Float
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-}
-
-enum OrderStatus {
-  PAYMENT_PENDING
-  PAID
-  PENDING
-  ACCEPTED
-  ON_THE_WAY
-  DELIVERED
-  CANCELED
 }

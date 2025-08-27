@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { OrderStatus, PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { authMiddleware } from '../middlewares/auth.js';
 import { randomUUID } from 'crypto';
 
@@ -203,8 +203,9 @@ router.patch('/:orderId/status', async (req, res, next) => {
         return res.status(400).json({ error: { code: 'BAD_REQUEST', message: 'Status must be a non-empty string.' } });
     }
 
-    const newStatusUpper = newStatus.toUpperCase() as OrderStatus;
-    if (!Object.values(OrderStatus).includes(newStatusUpper)) {
+    const newStatusUpper = newStatus.toUpperCase();
+    const allowedStatuses = ['PAYMENT_PENDING','PAID','PENDING','ACCEPTED','ON_THE_WAY','DELIVERED','CANCELED'] as const;
+    if (!(allowedStatuses as readonly string[]).includes(newStatusUpper)) {
         return res.status(400).json({ error: { code: 'BAD_REQUEST', message: `Invalid status: ${newStatus}` } });
     }
 
@@ -229,7 +230,7 @@ router.patch('/:orderId/status', async (req, res, next) => {
     }
 
     // Validate status transition
-    const validTransitions: Record<OrderStatus, OrderStatus[]> = {
+    const validTransitions: Record<string, string[]> = {
       PAYMENT_PENDING: ['PAID', 'CANCELED'],
       PAID: ['PENDING'],
       PENDING: ['ACCEPTED', 'CANCELED'],
@@ -239,7 +240,7 @@ router.patch('/:orderId/status', async (req, res, next) => {
       CANCELED: [],
     };
 
-    const currentStatus = order.status as OrderStatus;
+    const currentStatus = order.status as string;
     if (!validTransitions[currentStatus]?.includes(newStatusUpper)) {
       return res.status(400).json({
         error: {
