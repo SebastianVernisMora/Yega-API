@@ -17,6 +17,7 @@ paths:
   /health:
     get:
       summary: Health check endpoint
+      operationId: healthCheck
       description: Devuelve el estado de la API.
       security: []
       responses:
@@ -33,9 +34,16 @@ paths:
                   uptime:
                     type: number
                     example: 123.45
+        '400':
+          description: Solicitud incorrecta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /ready:
     get:
       summary: Readiness check endpoint
+      operationId: readinessCheck
       description: Verifica que la API esté lista para recibir tráfico.
       security: []
       responses:
@@ -49,6 +57,12 @@ paths:
                   status:
                     type: string
                     example: ready
+        '400':
+          description: Solicitud incorrecta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /auth/login:
     post:
       summary: User login
@@ -1325,3 +1339,32 @@ components:
             details:
               type: object
               additionalProperties: true
+    ConfirmPaymentRequest:
+      type: object
+      required: [paymentIntentId]
+      additionalProperties: false
+      properties:
+        paymentIntentId:
+          type: string
+    Payment:
+      type: object
+      required: [id, orderId, amount, currency, status, createdAt]
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+        orderId:
+          type: string
+          format: uuid
+        amount:
+          type: number
+          format: float
+        currency:
+          type: string
+          example: "mxn"
+        status:
+          type: string
+          enum: [succeeded, processing, failed]
+        createdAt:
+          type: string
+          format: date-time
